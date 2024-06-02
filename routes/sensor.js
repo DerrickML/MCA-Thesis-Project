@@ -91,4 +91,28 @@ router.get('/read', async (req, res) => {
     }
 });
 
+router.get('/last', async (req, res) => {
+    try {
+        const [rows] = await db.execute('SELECT * FROM SensorData ORDER BY dateTime DESC LIMIT 2');
+
+        if (rows.length === 0) {
+            return res.status(404).send('No sensor data found');
+        }
+
+        const formattedData = rows.map(row => ({
+            timestamp: row.dateTime,
+            data: {
+                temperature: row.temperature,
+                humidity: row.humidity,
+                lighting: row.lighting,
+                co2: row.co2
+            }
+        }));
+
+        res.json(formattedData);
+    } catch (error) {
+        res.status(500).send('Error reading the last sensor data: ' + error.message);
+    }
+});
+
 module.exports = router;
