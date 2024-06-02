@@ -3,3 +3,4 @@ node_modules
 cgi-bin
 .well-known
 .env
+db.js
