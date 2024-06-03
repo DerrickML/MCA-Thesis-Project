@@ -46,7 +46,8 @@ router.post('/update', async (req, res) => {
 //Read user filtered sensor data
 router.get('/read', async (req, res) => {
     const period = req.query.period || 'all';
-    let query = 'SELECT * FROM SensorData';
+    const limit = req.query.limit || 5000
+    let query = `SELECT * FROM SensorData LIMIT ${limit}`;
     let params = [];
 
     const now = new Date();
