@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+//Update sensor data
 router.post('/update', async (req, res) => {
     const sensorData = req.body;
 
@@ -42,6 +43,7 @@ router.post('/update', async (req, res) => {
     }
 });
 
+//Read user filtered sensor data
 router.get('/read', async (req, res) => {
     const period = req.query.period || 'all';
     let query = 'SELECT * FROM SensorData';
@@ -91,6 +93,7 @@ router.get('/read', async (req, res) => {
     }
 });
 
+//Retrieve last 2 sensor data
 router.get('/last', async (req, res) => {
     try {
         const [rows] = await db.execute('SELECT * FROM SensorData ORDER BY dateTime DESC LIMIT 2');

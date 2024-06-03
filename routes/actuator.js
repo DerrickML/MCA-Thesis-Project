@@ -3,15 +3,36 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+//Route to update actuator(s)
 router.post('/update', async (req, res) => {
-    const actuators = req.body;
+    const actuators = Array.isArray(req.body) ? req.body : [req.body];
+
     try {
         for (const actuator of actuators) {
-            const { dateTime, id, actuatorType, state } = actuator;
-            await db.execute(
-                'INSERT INTO Actuators (dateTime, id, actuator, state) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE state = VALUES(state), dateTime = VALUES(dateTime)',
-                [dateTime, id, actuatorType, state]
-            );
+            const { actuatorType, state } = actuator;
+
+            if (!actuatorType) {
+                return res.status(400).send('Missing required field: actuatorType is required');
+            }
+
+            const actuatorState = state !== undefined ? state : false;
+
+            // Check if the actuator exists
+            const [rows] = await db.execute('SELECT * FROM Actuators WHERE actuator = ?', [actuatorType]);
+
+            if (rows.length > 0) {
+                // Update the existing actuator's state
+                await db.execute(
+                    'UPDATE Actuators SET state = ?, dateTime = CURRENT_TIMESTAMP WHERE actuator = ?',
+                    [actuatorState, actuatorType]
+                );
+            } else {
+                // Insert a new actuator entry
+                await db.execute(
+                    'INSERT INTO Actuators (actuator, state) VALUES (?, ?)',
+                    [actuatorType, actuatorState]
+                );
+            }
         }
         res.status(200).send('Actuator states updated successfully');
     } catch (error) {
@@ -19,8 +40,9 @@ router.post('/update', async (req, res) => {
     }
 });
 
+// Route to retrieve actuator states
 router.get('/read', async (req, res) => {
-    const { actuatorTypes } = req.query; // Expecting a comma-separated list
+    const { actuatorTypes } = req.query; // Expecting a comma-separated list of actuator types
     let query = 'SELECT * FROM Actuators';
     let params = [];
 
@@ -35,7 +57,7 @@ router.get('/read', async (req, res) => {
         const [rows] = await db.execute(query, params);
         res.json(rows);
     } catch (error) {
-        res.status(500).send('Error reading actuator states: ' + error.message);
+        res.status(500).send('Error retrieving actuator states: ' + error.message);
     }
 });
 

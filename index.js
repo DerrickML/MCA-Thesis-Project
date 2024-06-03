@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const sensorRoutes = require('./routes/sensor');
 const actuatorRoutes = require('./routes/actuator');
+const parameterRoutes = require('./routes/parameter');
 const userRoutes = require('./routes/user');
 const cors = require('cors');
 
@@ -15,6 +16,7 @@ app.use(cors());
 
 app.use('/sensor', sensorRoutes);
 app.use('/actuator', actuatorRoutes);
+app.use('/parameter', parameterRoutes);
 app.use('/user', userRoutes);
 
 const PORT = process.env.PORT || 3002;
